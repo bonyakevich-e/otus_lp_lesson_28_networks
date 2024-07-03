@@ -103,4 +103,73 @@ __Практическая часть__
 |||
 |office2Server|192.168.1.2/25|
 
+__Задача__ : нужно настроить маршрутизацию и NAT таким образом, чтобы доступ в Интернет со всех хостов был через inetRouter и каждый сервер должен быть доступен с любого из 7 хостов.
 
+1. Создаем виртуальные машины с Vagrantfile'а:
+```
+$ vagrant up
+```
+2. Настраиваем маршрутизатор inetRouter:
+- Настраиваем NAT
+Проверяем что отключен фаервол ufw и отключаем его если включен:
+```console
+root@inetRouter:~# systemctl status ufw
+● ufw.service - Uncomplicated firewall
+     Loaded: loaded (/lib/systemd/system/ufw.service; enabled; vendor preset: enabled)
+     Active: active (exited) since Wed 2024-07-03 18:03:43 UTC; 1h 0min ago
+       Docs: man:ufw(8)
+   Main PID: 523 (code=exited, status=0/SUCCESS)
+        CPU: 586us
+
+root@inetRouter:~# systemctl stop ufw
+root@inetRouter:~# systemctl disable ufw
+```
+Включаем маскарадинг для хостов с адресом источника из сети 192.168.0.0/16:
+```console
+root@inetRouter:~# iptables -L -v -t nat
+```
+Посмотреть правила iptables:
+```
+root@inetRouter:~# iptables -L -v -t nat
+```
+Далее правила iptables нужно сохранить и настроить их автоматическую настройку после перезагрузки машрутизатора. Сохраняем правила в файл:
+```
+root@inetRouter:~# iptables-save > /etc/iptables.rules
+```
+Создаём файл /etc/network/if-pre-up.d/iptables, в который добавим скрипт автоматического восстановления правил при перезапуске системы:
+```
+#!/bin/sh
+ iptables-restore < /etc/iptables.rules
+ exit 0
+```
+```
+root@inetRouter:~# chmod +x /etc/network/if-pre-up.d/iptables
+```
+Включаем маршрутизацию транзитных пакетов:
+```
+root@inetRouter:~# echo "net.ipv4.conf.all.forwarding = 1" >> /etc/sysctl.conf
+root@inetRouter:~# sysctl -p
+```
+Также машрузацию транзитных пакетов нужно включить на __centralRouter__, __office1Router__, __office2Router__
+
+2. Отключаем маршрут по умолчанию на все устройствах, кроме __inetRouter__
+
+При разворачивании стенда Vagrant создает в каждом сервере свой интерфейс, через который у сервера появляется доступ в интернет. Отключить данный порт нельзя, так как через него Vagrant подключается к серверам. Обычно маршрут по умолчанию прописан как раз на этот интерфейс, данный маршрут нужно отключить.
+
+Для отключения маршрута по умолчанию в файле /etc/netplan/00-installer-config.yaml добавляем отключение маршрутов, полученных через DHCP:
+```
+# This is the network config written by 'subiquity'
+network:
+  ethernets:
+    eth0:
+      dhcp4: true
+      dhcp4-overrides:
+        use-routes: false
+      dhcp6: false
+  version: 2
+```
+После внесения данных изменений перезапускаем сетевую службу:
+```
+root@centralRouter:~# netplan try
+```
+3. Настраиваем статические маршруты
