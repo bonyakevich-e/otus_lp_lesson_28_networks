@@ -106,7 +106,7 @@ __Практическая часть__
 __Задача__ : нужно настроить маршрутизацию и NAT таким образом, чтобы доступ в Интернет со всех хостов был через inetRouter и каждый сервер должен быть доступен с любого из 7 хостов.
 
 1. Создаем виртуальные машины с Vagrantfile'а:
-```
+```console
 $ vagrant up
 ```
 2. Настраиваем маршрутизатор inetRouter:
@@ -129,24 +129,24 @@ root@inetRouter:~# systemctl disable ufw
 root@inetRouter:~# iptables -L -v -t nat
 ```
 Посмотреть правила iptables:
-```
+```console
 root@inetRouter:~# iptables -L -v -t nat
 ```
 Далее правила iptables нужно сохранить и настроить их автоматическую настройку после перезагрузки машрутизатора. Сохраняем правила в файл:
-```
+```console
 root@inetRouter:~# iptables-save > /etc/iptables.rules
 ```
 Создаём файл /etc/network/if-pre-up.d/iptables, в который добавим скрипт автоматического восстановления правил при перезапуске системы:
-```
+```shell
 #!/bin/sh
  iptables-restore < /etc/iptables.rules
  exit 0
 ```
-```
+```console
 root@inetRouter:~# chmod +x /etc/network/if-pre-up.d/iptables
 ```
 Включаем маршрутизацию транзитных пакетов:
-```
+```console
 root@inetRouter:~# echo "net.ipv4.conf.all.forwarding = 1" >> /etc/sysctl.conf
 root@inetRouter:~# sysctl -p
 ```
@@ -157,7 +157,7 @@ root@inetRouter:~# sysctl -p
 При разворачивании стенда Vagrant создает в каждом сервере свой интерфейс, через который у сервера появляется доступ в интернет. Отключить данный порт нельзя, так как через него Vagrant подключается к серверам. Обычно маршрут по умолчанию прописан как раз на этот интерфейс, данный маршрут нужно отключить.
 
 Для отключения маршрута по умолчанию в файле /etc/netplan/00-installer-config.yaml добавляем отключение маршрутов, полученных через DHCP:
-```
+```yaml
 # This is the network config written by 'subiquity'
 network:
   ethernets:
@@ -169,16 +169,16 @@ network:
   version: 2
 ```
 После внесения данных изменений перезапускаем сетевую службу:
-```
+```console
 root@centralRouter:~# netplan try
 ```
 3. Настраиваем статические маршруты
 Временно (до первой перезагрузки) статические маршруты можно установить командой:
-```
+```console
 root@office1Server:~# ip route add 0.0.0.0/0 via 192.168.2.129
 ```
 Удалить маршрут:
-```
+```console
 root@office1Server:~# ip route del 0.0.0.0/0 via 192.168.2.129
 ```
 Для того, чтобы маршруты сохранялись после перезагрузки нужно их указывать непосредственно в файле конфигурации сетевых интерфейсов:
@@ -187,13 +187,13 @@ root@office1Server:~# ip route del 0.0.0.0/0 via 192.168.2.129
 В нашем стенде такой файл - `/etc/netplan/50-vagrant.yaml` 
 
 Для добавления маршрута, после раздела addresses нужно добавить блок:
-```
+```yaml
 routes:
-      - to: <сеть назначения>/<маска>
-   via: <Next hop address>
+  - to: <сеть назначения>/<маска>
+    via: <Next hop address>
 ```
 Пример файла `/etc/netplan/50-vagrant.yaml`
-```
+```yaml
 ---
 network:
   version: 2
@@ -210,13 +210,13 @@ network:
       - 192.168.50.21/24
 ```
 Применить настройки:
-```
+```console
 root@centralRouter:~# netplan try
 ```
 Подобным образом настраваем маршруты на всех необходимых устройствах.
 
 4. Устанавливаем traceroute и проверяем выход в интернет на серверах:
-```
+```console
 root@office1Server:~# apt install -y traceroute
 root@office1Server:~# traceroute 8.8.8.8
 ```
