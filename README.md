@@ -126,7 +126,7 @@ root@inetRouter:~# systemctl disable ufw
 ```
 Включаем маскарадинг для хостов с адресом источника из сети 192.168.0.0/16:
 ```console
-root@inetRouter:~# iptables -L -v -t nat
+root@inetRouter:~# iptables -t nat -A POSTROUTING ! -d 192.168.0.0/16 -o eth0 -j MASQUERADE
 ```
 Посмотреть правила iptables:
 ```console
