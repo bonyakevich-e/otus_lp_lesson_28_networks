@@ -173,3 +173,50 @@ network:
 root@centralRouter:~# netplan try
 ```
 3. Настраиваем статические маршруты
+Временно (до первой перезагрузки) статические маршруты можно установить командой:
+```
+root@office1Server:~# ip route add 0.0.0.0/0 via 192.168.2.129
+```
+Удалить маршрут:
+```
+root@office1Server:~# ip route del 0.0.0.0/0 via 192.168.2.129
+```
+Для того, чтобы маршруты сохранялись после перезагрузки нужно их указывать непосредственно в файле конфигурации сетевых интерфейсов:
+
+В современных версиях Ubuntu, для указания маршрута нужно поправить netplan-конфиг. Конфиги netplan хранятся в виде YAML-файлов и обычно лежат в каталоге /etc/netplan
+В нашем стенде такой файл - `/etc/netplan/50-vagrant.yaml` 
+
+Для добавления маршрута, после раздела addresses нужно добавить блок:
+```
+routes:
+      - to: <сеть назначения>/<маска>
+   via: <Next hop address>
+```
+Пример файла `/etc/netplan/50-vagrant.yaml`
+```
+---
+network:
+  version: 2
+  renderer: networkd
+  ethernets:
+    enp0s8:
+      addresses:
+      - 192.168.2.130/26
+      routes:
+      - to: 0.0.0.0/0
+        via: 192.168.2.129
+    enp0s19:
+      addresses:
+      - 192.168.50.21/24
+```
+Применить настройки:
+```
+root@centralRouter:~# netplan try
+```
+Подобным образом настраваем маршруты на всех необходимых устройствах.
+
+4. Устанавливаем traceroute и проверяем выход в интернет на серверах:
+```
+root@office1Server:~# apt install -y traceroute
+root@office1Server:~# traceroute 8.8.8.8
+```
