@@ -124,7 +124,7 @@ root@inetRouter:~# systemctl status ufw
 root@inetRouter:~# systemctl stop ufw
 root@inetRouter:~# systemctl disable ufw
 ```
-Включаем маскарадинг для хостов с адресом источника из сети 192.168.0.0/16:
+Включаем маскарадинг:
 ```console
 root@inetRouter:~# iptables -t nat -A POSTROUTING ! -d 192.168.0.0/16 -o eth0 -j MASQUERADE
 ```
