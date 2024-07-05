@@ -30,7 +30,7 @@
         path: /etc/iptables.rules
       when: (ansible_hostname == "inetRouter")
 
-    - name: set up NAT on inetRouter during system boot
+    - name: copy sh script for iptables restoring after system boot
       ansible.builtin.template: 
         src: "templates/iptables-restore.sh"
         dest: "/etc/network/if-pre-up.d/iptables"
