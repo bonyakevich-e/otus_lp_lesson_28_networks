@@ -9,7 +9,6 @@ MACHINES = {
         :vm_name => "inetRouter",
         :net => [   
                     ["192.168.255.1", 2, "255.255.255.252",  "router-net"], 
-#                    ["192.168.56.10", 8, "255.255.255.0"],
                 ]
   },
 
@@ -23,7 +22,6 @@ MACHINES = {
                    ["192.168.0.65",   5, "255.255.255.192",  "mgt-net"],
                    ["192.168.255.9",  6, "255.255.255.252",  "office1-central"],
                    ["192.168.255.5",  7, "255.255.255.252",  "office2-central"],
-#                   ["192.168.56.11",  8, "255.255.255.0"],
                 ]
   },
 
@@ -32,7 +30,6 @@ MACHINES = {
         :vm_name => "centralServer",
         :net => [
                    ["192.168.0.2",    2, "255.255.255.240",  "dir-net"],
-#                   ["192.168.56.12",  8, "255.255.255.0"],
                 ]
   },
 
@@ -45,7 +42,6 @@ MACHINES = {
                    ["192.168.2.65",    4,  "255.255.255.192",  "test1-net"],
                    ["192.168.2.129",   5,  "255.255.255.192",  "managers-net"],
                    ["192.168.2.193",   6,  "255.255.255.192",  "office1-net"],
-#                   ["192.168.56.20",   8,  "255.255.255.0"],
                 ]
   },
 
@@ -54,7 +50,6 @@ MACHINES = {
         :vm_name => "office1Server",
         :net => [
                    ["192.168.2.130",  2,  "255.255.255.192",  "managers-net"],
-#                  ["192.168.56.21",  8,  "255.255.255.0"],
                 ]
   },
 
@@ -66,7 +61,6 @@ MACHINES = {
                    ["192.168.1.1",    3,  "255.255.255.128",  "dev2-net"],
                    ["192.168.1.129",  4,  "255.255.255.192",  "test2-net"],
                    ["192.168.1.193",  5,  "255.255.255.192",  "office2-net"],
-#                  ["192.168.56.30",  8,  "255.255.255.0"],
                ]
   },
 
@@ -75,7 +69,6 @@ MACHINES = {
        :vm_name => "office2Server",
        :net => [
                   ["192.168.1.2",    2,  "255.255.255.128",  "dev2-net"],
-#                  ["192.168.56.31",  8,  "255.255.255.0"],
                ]
   }
 }
@@ -99,19 +92,12 @@ Vagrant.configure("2") do |config|
         box.vm.network "public_network", boxconfig[:public]
       end
 
-#      box.vm.provision "shell", inline: <<-SHELL
-#        mkdir -p ~root/.ssh
-#        cp ~vagrant/.ssh/auth* ~root/.ssh
-#      SHELL
-
       if boxconfig[:vm_name] == "office2Server"
        box.vm.provision "ansible" do |ansible|
         ansible.playbook = "ansible/provision.yaml"
 	ansible.groups = {
   	  "routers" => ["inetRouter", "centralRouter", "office1Router","office2Router"]
 	}
-#        ansible.inventory_path = "ansible/hosts"
-#        ansible.host_key_checking = "false"
         ansible.limit = "all"
        end
       end
