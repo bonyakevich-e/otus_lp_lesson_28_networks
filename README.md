@@ -50,6 +50,9 @@
 
 ### Инструкция по выполнению домашнего задания:
 
+> [!CAUTION]
+> В данном репозитории весь стенд для практической работы собирается с помощью Ansible при создании виртуальных машин командой `vagrant up`!
+
 __Теоретическая часть__
 
 Создаем таблицу топологии:
@@ -218,5 +221,5 @@ root@centralRouter:~# netplan try
 4. Устанавливаем traceroute и проверяем выход в интернет на серверах:
 ```console
 root@office1Server:~# apt install -y traceroute
-root@office1Server:~# traceroute 8.8.8.8
+root@office1Server:~# traceroute -n 8.8.8.8
 ```
