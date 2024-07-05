@@ -16,7 +16,7 @@
         name: traceroute
         state: present
 
-    - name: set SNAT on inetRouter
+    - name: set up SNAT on inetRouter
       ansible.builtin.iptables:
         table: nat 
         chain: POSTROUTING 
@@ -24,13 +24,13 @@
         jump: MASQUERADE
       when: (ansible_hostname == "inetRouter")
 
-    - name: Save current state of the firewall in system file
+    - name: save current state of the firewall in system file
       community.general.iptables_state:
         state: saved
         path: /etc/iptables.rules
       when: (ansible_hostname == "inetRouter")
 
-    - name: Set up NAT on inetRouter
+    - name: set up NAT on inetRouter during system boot
       ansible.builtin.template: 
         src: "templates/iptables-restore.sh"
         dest: "/etc/network/if-pre-up.d/iptables"
